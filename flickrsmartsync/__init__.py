@@ -1,14 +1,22 @@
-#
+#!/usr/local/bin python
+# -*- coding: utf-8 -*-
+
 import HTMLParser
+import argparse
+import codecs
+import flickrapi
 import json
+import locale
 import os
 import re
+import sys
+import unicodedata
 import urllib
-import argparse
-import flickrapi
-import re
 
-__author__ = 'faisal'
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
+__author__ = 'kenijo'
 
 EXT_IMAGE = ('jpg', 'png', 'jpeg', 'gif', 'bmp')
 EXT_VIDEO = ('avi', 'wmv', 'mov', 'mp4', '3gp', 'ogg', 'ogv', 'mts')
@@ -108,6 +116,7 @@ def start_sync(sync_path, cmd_args):
         for set in sets['photosets']['photoset']:
             # Make sure it's the one from backup format
             desc = html_parser.unescape(set['description']['_content'])
+            print '***' + desc
             if desc:
                 photo_sets_map[desc] = set['id']
                 title = get_custom_set_title(sync_path + desc)
@@ -247,13 +256,19 @@ def start_sync(sync_path, cmd_args):
             print 'Found %s photos' % len(photos)
 
             for photo in sorted(photo_sets[photo_set]):
+
                 # Adds skips
                 if cmd_args.ignore_images and photo.split('.').pop().lower() in EXT_IMAGE:
                     continue
                 elif cmd_args.ignore_videos and photo.split('.').pop().lower() in EXT_VIDEO:
                     continue
-
-                if photo in photos or is_windows and photo.replace(os.sep, '/') in photos:
+                                   
+                photo_exist = False
+                for k, v in photos.iteritems():
+                    if photo == str(k) or is_windows and photo.replace(os.sep, '/') == str(k):
+                        photo_exist = True
+                
+                if photo_exist == True:
                     print 'Skipped [%s] already exists in set [%s]' % (photo, display_title)
                 else:
                     print 'Uploading [%s] to set [%s]' % (photo, display_title)
