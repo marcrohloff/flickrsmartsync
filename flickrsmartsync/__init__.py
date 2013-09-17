@@ -16,8 +16,7 @@ import urllib
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-__original_author__ = 'faisal'
-__modified_author__ = 'kenijo'
+__author__ = 'kenijo'
 
 EXT_IMAGE = ('jpg', 'png', 'jpeg', 'gif', 'bmp')
 EXT_VIDEO = ('avi', 'wmv', 'mov', 'mp4', '3gp', 'ogg', 'ogv', 'mts')
@@ -57,9 +56,11 @@ def start_sync(sync_path, cmd_args):
     # Build your local photo sets
     photo_sets = {}
     skips_root = []
+    exclude_files = ['.*']
+    exclude_folders = ['.*', '@eaDir']
     for r, dirs, files in os.walk(sync_path):
-        files = [f for f in files if not f.startswith('.')]
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        files = [f for f in files if f not in exclude_files]
+        dirs[:] = [d for d in dirs if d not in exclude_folders]
 
         for file in files:
             if not file.startswith('.'):
@@ -264,12 +265,12 @@ def start_sync(sync_path, cmd_args):
                 elif cmd_args.ignore_videos and photo.split('.').pop().lower() in EXT_VIDEO:
                     continue
 
-                photo_exists = False
+                photo_exist = False
                 for k, v in photos.iteritems():
                     if photo == str(k) or is_windows and photo.replace(os.sep, '/') == str(k):
-                        photo_exists = True
+                        photo_exist = True
 
-                if photo_exists == True:
+                if photo_exist == True:
                     print 'Skipped [%s] already exists in set [%s]' % (photo, display_title)
                 else:
                     print 'Uploading [%s] to set [%s]' % (photo, display_title)
@@ -301,10 +302,11 @@ def start_sync(sync_path, cmd_args):
                         continue
 
                     try:
-                        upload = api.upload(file_path, None, **upload_args)
-                        photo_id = upload.find('photoid').text
-                        add_to_photo_set(photo_id, folder)
-                        photos[photo] = photo_id
+                        #upload = api.upload(file_path, None, **upload_args)
+                        #photo_id = upload.find('photoid').text
+                        #add_to_photo_set(photo_id, folder)
+                        #photos[photo] = photo_id
+                        print ' '
                     except flickrapi.FlickrError as e:
                         print e.message
 
