@@ -302,11 +302,10 @@ def start_sync(sync_path, cmd_args):
                         continue
 
                     try:
-                        #upload = api.upload(file_path, None, **upload_args)
-                        #photo_id = upload.find('photoid').text
-                        #add_to_photo_set(photo_id, folder)
-                        #photos[photo] = photo_id
-                        print ' '
+                        upload = api.upload(file_path, None, **upload_args)
+                        photo_id = upload.find('photoid').text
+                        add_to_photo_set(photo_id, folder)
+                        photos[photo] = photo_id
                     except flickrapi.FlickrError as e:
                         print e.message
 
