@@ -16,7 +16,8 @@ import urllib
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
-__author__ = 'kenijo'
+__original_author__ = 'faisal'
+__modified_author__ = 'kenijo'
 
 EXT_IMAGE = ('jpg', 'png', 'jpeg', 'gif', 'bmp')
 EXT_VIDEO = ('avi', 'wmv', 'mov', 'mp4', '3gp', 'ogg', 'ogv', 'mts')
@@ -263,12 +264,12 @@ def start_sync(sync_path, cmd_args):
                 elif cmd_args.ignore_videos and photo.split('.').pop().lower() in EXT_VIDEO:
                     continue
 
-                photo_exist = False
+                photo_exists = False
                 for k, v in photos.iteritems():
                     if photo == str(k) or is_windows and photo.replace(os.sep, '/') == str(k):
-                        photo_exist = True
+                        photo_exists = True
 
-                if photo_exist == True:
+                if photo_exists == True:
                     print 'Skipped [%s] already exists in set [%s]' % (photo, display_title)
                 else:
                     print 'Uploading [%s] to set [%s]' % (photo, display_title)
