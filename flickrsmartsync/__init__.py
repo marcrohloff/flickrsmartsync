@@ -78,7 +78,7 @@ def start_sync(sync_path, cmd_args):
 
     # custom set builder
     def get_custom_set_title(path):
-        title = path.split('/').pop()
+        title = '-'.join( path.split('/') )
 
         if cmd_args.custom_set:
             m = re.match(cmd_args.custom_set, path)
@@ -100,7 +100,8 @@ def start_sync(sync_path, cmd_args):
     # Show 3 possibilities
     if cmd_args.custom_set:
         for photo_set in photo_sets:
-            print 'Set Title: [%s]  Path: [%s]' % (get_custom_set_title(photo_set), photo_set)
+            folder = photo_set.replace(sync_path, '')
+            print 'Set Title: [%s]  Folder: [%s]' % (get_custom_set_title(folder), folder)
 
         if raw_input('Is this your expected custom set titles (y/n):') != 'y':
             exit(0)
@@ -119,7 +120,7 @@ def start_sync(sync_path, cmd_args):
 
             if desc:
                 photo_sets_map[desc] = set['id']
-                title = get_custom_set_title(sync_path + desc)
+                title = get_custom_set_title(desc)
                 if cmd_args.update_custom_set and desc in photo_set and title != set['title']['_content']:
                     update_args = args.copy()
                     update_args.update({
@@ -142,7 +143,7 @@ def start_sync(sync_path, cmd_args):
 
         if folder not in photo_sets_map:
             photosets_args = args.copy()
-            custom_title = get_custom_set_title(sync_path + folder)
+            custom_title = get_custom_set_title(folder)
             photosets_args.update({'primary_photo_id': photo_id,
                                    'title': custom_title,
                                    'description': folder})
@@ -235,7 +236,7 @@ def start_sync(sync_path, cmd_args):
         # upload photos that does not exists in online map
         for photo_set in sorted(photo_sets):
             folder = photo_set.replace(sync_path, '')
-            display_title = get_custom_set_title(photo_set)
+            display_title = get_custom_set_title(folder)
             
             # Create tags from folder names
             # Remove duplicate words from tags
