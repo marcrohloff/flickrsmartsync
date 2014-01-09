@@ -19,6 +19,7 @@ sys.setdefaultencoding("utf-8")
 __author__ = 'kenijo'
 
 import keys
+#from __future__ import print_function
 
 EXT_IMAGE = ('jpg', 'png', 'jpeg', 'gif', 'bmp')
 EXT_VIDEO = ('avi', 'wmv', 'mov', 'mp4', '3gp', 'ogg', 'ogv', 'mts')
@@ -29,7 +30,7 @@ def start_sync(sync_path, cmd_args):
     is_download = cmd_args.download
 
     if not os.path.exists(sync_path):
-        print 'Sync path does not exists'
+        print 'Sync path does not exist'
         exit(0)
 
     # Common arguments
@@ -227,7 +228,8 @@ def start_sync(sync_path, cmd_args):
 
                     path = os.path.join(folder, photo)
                     if os.path.exists(path):
-                        print 'Skipped [%s] already downloaded' % path
+                        # print 'Skipped [%s] already downloaded' % path
+                        pass
                     else:
                         print 'Downloading photo [%s]' % path
                         urllib.urlretrieve(photos[photo], os.path.join(sync_path, path))
@@ -270,7 +272,8 @@ def start_sync(sync_path, cmd_args):
                         photo_exist = True
 
                 if photo_exist == True:
-                    print 'Skipped [%s] already exists in set [%s]' % (photo, display_title)
+                    # print 'Skipped [%s] already exists in set [%s]' % (photo, display_title)
+                    pass
                 else:
                     print 'Uploading [%s] to set [%s]' % (photo, display_title)
                     upload_args = {
@@ -306,14 +309,21 @@ def start_sync(sync_path, cmd_args):
                         add_to_photo_set(photo_id, folder)
                         photos[photo] = photo_id
                     except flickrapi.FlickrError as e:
-                        print e.message
-                    except:
-                        print e.message
-                        pass
+                        error( '%s on %s in %s' % (e.message, photo, display_title) )
+                    except BaseException as e:
+                        error( '%s on %s in %s' % (e.message, photo, display_title) )
 
 
     print 'All Synced'
 
+
+def warning(*objs):
+    sys.stderr.write("WARNING: %s\n" % objs )
+    sys.stderr.flush()
+
+def error(*objs):
+    sys.stderr.write("ERROR: %s\n" % objs )
+    sys.stderr.flush()
 
 def main():
     parser = argparse.ArgumentParser(description='Sync current folder to your flickr account.')
