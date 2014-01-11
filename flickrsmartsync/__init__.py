@@ -19,10 +19,9 @@ sys.setdefaultencoding("utf-8")
 __author__ = 'kenijo'
 
 import keys
-#from __future__ import print_function
 
 EXT_IMAGE = ('jpg', 'png', 'jpeg', 'gif', 'bmp')
-EXT_VIDEO = ('avi', 'wmv', 'mov', 'mp4', '3gp', 'ogg', 'ogv', 'mts')
+EXT_VIDEO = ('avi', 'wmv', 'mov', 'mp4', 'm4v', '3gp', 'ogg', 'ogv', 'mts')
 
 
 def start_sync(sync_path, cmd_args):
@@ -30,7 +29,7 @@ def start_sync(sync_path, cmd_args):
     is_download = cmd_args.download
 
     if not os.path.exists(sync_path):
-        print 'Sync path does not exist'
+        error( 'Sync path does not exist' )
         exit(0)
 
     # Common arguments
@@ -58,6 +57,10 @@ def start_sync(sync_path, cmd_args):
     exclude_files = ['.*']
     exclude_folders = ['.*', '@eaDir']
     for r, dirs, files in os.walk(sync_path):
+        if os.path.isfile(os.path.join(r, 'flickr.ignore')):
+            dirs[:] = []
+            continue;
+                                       
         files = [f for f in files if f not in exclude_files]
         dirs[:] = [d for d in dirs if d not in exclude_folders]
 
@@ -74,6 +77,7 @@ def start_sync(sync_path, cmd_args):
                         photo_sets[r].append(file)
 
     if skips_root:
+        error('To avoid disorganization on flickr sets root photos are not synced, skipped photos')
         print 'To avoid disorganization on flickr sets root photos are not synced, skipped these photos:', skips_root
         print 'Try to sync at top most level of your photos directory'
 
@@ -158,7 +162,7 @@ def start_sync(sync_path, cmd_args):
             if result.get('stat') == 'ok':
                 print 'Success'
             else:
-                print result
+                error( result )
 
     # Get photos in a set
     def get_photos_in_set(folder):
@@ -300,7 +304,7 @@ def start_sync(sync_path, cmd_args):
                     file_stat = os.stat(file_path)
 
                     if file_stat.st_size >= 1073741824:
-                        print 'Skipped [%s] over size limit' % photo
+                        error( 'Skipped [%s] over size limit' % photo )
                         continue
 
                     try:
