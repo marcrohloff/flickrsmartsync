@@ -12,6 +12,7 @@ import re
 import sys
 import unicodedata
 import urllib
+import glob
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -22,7 +23,57 @@ import keys
 
 EXT_IMAGE = ('jpg', 'png', 'jpeg', 'gif', 'bmp')
 EXT_VIDEO = ('avi', 'wmv', 'mov', 'mp4', 'm4v', '3gp', 'ogg', 'ogv', 'mts')
+MIME_TYPES = {
+   'image/jpeg':        'jpg',
+   'image/pjpeg':       'jpg',
+   'image/gif':         'gif',
+   'image/gif':         'gif',
+   'image/png':         'png',
+   'video/x-motion-jpeg': 'mjpg',
+   'video/quicktime':    'mov',
+   'video/mp4':         'mp4',
+   'video/mpeg':        'mpg',
+   'application/x-dvi':  'dvi',
+   'video/x-msvideo':    'avi',
+   'video/x-ms-wmv':     'wmv'
+}
 
+# get the file ext
+def file_ext(file):
+    ext = str(file).lower().split('.').pop()
+    if len(ext)<=4 :
+       return ext
+    else:
+       return ''
+
+# get the file basename
+def file_basename(file):
+    parts = str(file).lower().split('.')
+    if len(parts[-1])<=4:
+        parts.pop()
+        return '.'.join(parts)
+    else:
+        return str(file)
+
+# Check the content-type of the file and change the extension if necessary
+def fix_file_ext(file, headers):
+    if file_ext(file):
+        return
+
+    if 'content-disposition' in headers:
+        new_ext = file_ext(headers['content-disposition'])
+    else:
+        new_ext = ''
+            
+    if new_ext=='':
+      content_type = headers['content-type'].lower()
+      if content_type not in MIME_TYPES:
+          warning('Unknown mime type for ct:%s' % [ content-type ])
+          return;
+      new_ext = MIME_TYPES[content_type]
+
+    new_file = file + '.' + new_ext
+    os.rename(file, new_file)
 
 def start_sync(sync_path, cmd_args):
     is_windows = os.name == 'nt'
@@ -57,7 +108,7 @@ def start_sync(sync_path, cmd_args):
     exclude_files = ['.*']
     exclude_folders = ['.*', '@eaDir']
     for r, dirs, files in os.walk(sync_path):
-        if os.path.isfile(os.path.join(r, 'flickr.ignore')):
+        if os.path.isfile(os.path.join(r, 'ignore.flickr')):
             dirs[:] = []
             continue;
                                        
@@ -66,7 +117,7 @@ def start_sync(sync_path, cmd_args):
 
         for file in files:
             if not file.startswith('.'):
-                ext = file.lower().split('.').pop()
+                ext = file_ext(file)
                 if ext in EXT_IMAGE or \
                    ext in EXT_VIDEO:
 
@@ -179,8 +230,7 @@ def start_sync(sync_path, cmd_args):
             page = 1
             while True:
                 photoset_args.update({'photoset_id': photo_sets_map[folder], 'page': page})
-                if is_download:
-                    photoset_args['extras'] = 'url_o,media'
+                photoset_args['extras'] = 'url_o,media,original_format'
                 page += 1
                 photos_in_set = json.loads(api.photosets_getPhotos(**photoset_args))
                 if photos_in_set['stat'] != 'ok':
@@ -189,20 +239,30 @@ def start_sync(sync_path, cmd_args):
                 for photo in photos_in_set['photoset']['photo']:
 
                     if is_download and photo.get('media') == 'video':
-                        # photo_args = args.copy()
-                        # photo_args['photo_id'] = photo['id']
-                        # sizes = json.loads(api.photos_getSizes(**photo_args))
-                        # if sizes['stat'] != 'ok':
-                        #     continue
-                        #
+                        photo_args = args.copy()
+                        photo_args['photo_id'] = photo['id']
+                        photo_args['extras'] = 'url_o,media,original_format'
+                        sizes = json.loads(api.photos_getSizes(**photo_args))
+                        # print "sizes", sizes
+                        if sizes['stat'] != 'ok':
+                            continue
+
                         # original = filter(lambda s: s['label'].startswith('Site') and s['media'] == 'video', sizes['sizes']['size'])
-                        # if original:
-                        #     photos[photo['title']] = original.pop()['source'].replace('/site/', '/orig/')
+                        original = filter(lambda s: s['source'].find('/orig') > 0 and s['media'] == 'video', sizes['sizes']['size'])
+                        # print "original", original
+                        if original:
+                            source = original[-1]['source'].replace('/site/', '/orig/')
+                            title = photo['title']
+                            photos[title] = source
+                
                         #     print photos
                         # Skipts download video for now since it doesn't work
-                        continue
+                        #continue
+                        #photos[photo['title']] = 'http://www.flickr.com/video_download.gne?id=%s' % photo['id']
+                        #print     photos[photo['title']]
                     else:
-                        photos[photo['title']] = photo['url_o'] if is_download else photo['id']
+                        title = photo['title']
+                        photos[title] = photo['url_o'] if is_download else photo['id']
 
         return photos
 
@@ -225,18 +285,23 @@ def start_sync(sync_path, cmd_args):
 
                 for photo in photos:
                     # Adds skips
-                    if cmd_args.ignore_images and photo.split('.').pop().lower() in EXT_IMAGE:
+                    if cmd_args.ignore_images and file_ext(photo) in EXT_IMAGE:
                         continue
-                    elif cmd_args.ignore_videos and photo.split('.').pop().lower() in EXT_VIDEO:
+                    elif cmd_args.ignore_videos and file_ext(photo) in EXT_VIDEO:
                         continue
 
                     path = os.path.join(folder, photo)
                     if os.path.exists(path):
                         # print 'Skipped [%s] already downloaded' % path
                         pass
+                    elif glob.glob(path + '.*'):
+                        # print 'Skipped [%s] already matched' % path
+                        pass
                     else:
                         print 'Downloading photo [%s]' % path
-                        urllib.urlretrieve(photos[photo], os.path.join(sync_path, path))
+                        [filename, headers] = urllib.urlretrieve(photos[photo], os.path.join(sync_path, path) )
+                        fix_file_ext(filename, headers)
+
     else:
         # Loop through all local photo set map and
         # upload photos that does not exists in online map
@@ -265,15 +330,19 @@ def start_sync(sync_path, cmd_args):
             for photo in sorted(photo_sets[photo_set]):
 
                 # Adds skips
-                if cmd_args.ignore_images and photo.split('.').pop().lower() in EXT_IMAGE:
+                if cmd_args.ignore_images and file_ext(photo) in EXT_IMAGE:
                     continue
-                elif cmd_args.ignore_videos and photo.split('.').pop().lower() in EXT_VIDEO:
+                elif cmd_args.ignore_videos and file_ext(photo) in EXT_VIDEO:
                     continue
 
                 photo_exist = False
+                p_no_ext = file_basename(photo)
                 for k, v in photos.iteritems():
-                    if photo == str(k) or is_windows and photo.replace(os.sep, '/') == str(k):
-                        photo_exist = True
+                    k_no_ext = file_basename(k)
+                    if (photo == str(k) or is_windows and photo.replace(os.sep, '/') == str(k) or
+                        photo == str(k_no_ext) or is_windows and photo.replace(os.sep, '/') == str(k_no_ext) or
+                        p_no_ext == str(k) or is_windows and p_no_ext.replace(os.sep, '/') == str(k)            ) :
+                            photo_exist = True
 
                 if photo_exist == True:
                     # print 'Skipped [%s] already exists in set [%s]' % (photo, display_title)
@@ -283,7 +352,7 @@ def start_sync(sync_path, cmd_args):
                     upload_args = {
                         'auth_token': token,
                         # (Optional) The title of the photo.
-                        'title': photo,
+                        'title': file_basename(photo),
                         # (Optional) A description of the photo. May contain some limited HTML.
                         'description': folder,
                         # (Optional) A space-seperated list of tags to apply to the photo.
@@ -319,7 +388,6 @@ def start_sync(sync_path, cmd_args):
 
 
     print 'All Synced'
-
 
 def warning(*objs):
     sys.stderr.write("WARNING: %s\n" % objs )
