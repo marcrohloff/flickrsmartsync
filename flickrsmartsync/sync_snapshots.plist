@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>flickrsmartsync.sync_snapshots</string>
+	<key>WorkingDirectory</key>
+	<string>/Users/marc/Pictures/Snapshots</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/marc/Applications/flickrsmartsync/flickrsmartsync/sync_snapshots.sh</string>
+	</array>
+	<key>ExitTimeOut</key>
+	<integer>3600</integer>
+	<key>TimeOut</key>
+	<integer>3600</integer>
+	<key>StandardOutPath</key>
+	<string>/tmp/sync_snapshots.log</string>
+	<key>StandardErrorPath</key>
+	<string>/tmp/sync_snapshots.log</string>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>12</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
+</dict>
+</plist>
