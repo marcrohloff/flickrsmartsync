@@ -68,7 +68,7 @@ def fix_file_ext(file, headers):
     if new_ext=='':
       content_type = headers['content-type'].lower()
       if content_type not in MIME_TYPES:
-          warning('Unknown mime type for ct:%s' % [ content-type ])
+          warning('Unknown mime type for ct:{}'.format(content-type) )
           return;
       new_ext = MIME_TYPES[content_type]
 
@@ -157,13 +157,13 @@ def start_sync(sync_path, cmd_args):
     if cmd_args.custom_set:
         for photo_set in photo_sets:
             folder = photo_set.replace(sync_path, '')
-            print 'Set Title: [%s]  Folder: [%s]' % (get_custom_set_title(folder), folder)
+            print 'Set Title: [{}]  Folder: [{}]'.format( get_custom_set_title(folder, folder ) )
 
         if raw_input('Is this your expected custom set titles (y/n):') != 'y':
             exit(0)
 
     while True:
-        print 'Getting photosets page %s' % page
+        print 'Getting photosets page {}'.format(page)
         photosets_args.update({'page': page, 'per_page': 500})
         sets = json.loads(api.photosets_getList(**photosets_args))
         page += 1
@@ -184,11 +184,11 @@ def start_sync(sync_path, cmd_args):
                         'title': title,
                         'description': desc
                     })
-                    print 'Updating custom title [%s]...' % title
+                    print 'Updating custom title [{}]...'.format( title )
                     json.loads(api.photosets_editMeta(**update_args))
                     print 'done'
 
-    print 'Found %s photo sets' % len(photo_sets_map)
+    print 'Found {} photo sets'.format( len(photo_sets_map) )
 
     # For adding photo to set
     def add_to_photo_set(photo_id, folder):
@@ -205,7 +205,7 @@ def start_sync(sync_path, cmd_args):
                                    'description': folder})
             set = json.loads(api.photosets_create(**photosets_args))
             photo_sets_map[folder] = set['photoset']['id']
-            print 'Created set [%s] and added photo' % custom_title
+            print 'Created set [{}] and added photo'.format( custom_title )
         else:
             photosets_args = args.copy()
             photosets_args.update({'photoset_id': photo_sets_map.get(folder), 'photo_id': photo_id})
@@ -258,7 +258,7 @@ def start_sync(sync_path, cmd_args):
                         #     print photos
                         # Skipts download video for now since it doesn't work
                         #continue
-                        #photos[photo['title']] = 'http://www.flickr.com/video_download.gne?id=%s' % photo['id']
+                        #photos[photo['title']] = 'http://www.flickr.com/video_download.gne?id={}'.format( photo['id'] )
                         #print     photos[photo['title']]
                     else:
                         title = photo['title']
@@ -274,7 +274,7 @@ def start_sync(sync_path, cmd_args):
         for photo_set in photo_sets_map:
             if photo_set and is_download == '.' or is_download != '.' and photo_set.startswith(is_download):
                 folder = photo_set.replace(sync_path, '')
-                print 'Getting photos in set [%s]' % folder
+                print 'Getting photos in set [{}]'.format( folder )
                 photos = get_photos_in_set(folder)
                 # If Uploaded on unix and downloading on windows & vice versa
                 if is_windows:
@@ -292,13 +292,13 @@ def start_sync(sync_path, cmd_args):
 
                     path = os.path.join(folder, photo)
                     if os.path.exists(path):
-                        # print 'Skipped [%s] already downloaded' % path
+                        # print 'Skipped [{}] already downloaded'.format( path )
                         pass
                     elif glob.glob(path + '.*'):
-                        # print 'Skipped [%s] already matched' % path
+                        # print 'Skipped [{}] already matched'.format( path )
                         pass
                     else:
-                        print 'Downloading photo [%s]' % path
+                        print 'Downloading photo [{}]'.format( path )
                         [filename, headers] = urllib.urlretrieve(photos[photo], os.path.join(sync_path, path) )
                         fix_file_ext(filename, headers)
 
@@ -323,9 +323,9 @@ def start_sync(sync_path, cmd_args):
                 tags = re.sub(r'\W*\b\w{1,3}\b', ' ', tags)
                 tags=' '.join(unique_list(tags.split()))
 
-            print 'Getting photos in set [%s]' % display_title
+            print 'Getting photos in set [{}]'.format( display_title )
             photos = get_photos_in_set(folder)
-            print 'Found %s photos' % len(photos)
+            print 'Found {} photos'.format( len(photos) )
 
             for photo in sorted(photo_sets[photo_set]):
 
@@ -336,19 +336,21 @@ def start_sync(sync_path, cmd_args):
                     continue
 
                 photo_exist = False
-                p_no_ext = file_basename(photo)
+                photo_l = photo.lower()
+                p_no_ext = file_basename(photo_l)
                 for k, v in photos.iteritems():
+                    k = k.lower()
                     k_no_ext = file_basename(k)
-                    if (photo == str(k) or is_windows and photo.replace(os.sep, '/') == str(k) or
-                        photo == str(k_no_ext) or is_windows and photo.replace(os.sep, '/') == str(k_no_ext) or
-                        p_no_ext == str(k) or is_windows and p_no_ext.replace(os.sep, '/') == str(k)            ) :
+                    if (photo_l == str(k) or is_windows and photo.replace(os.sep, '/') == str(k) or
+                        photo_l == str(k_no_ext) or is_windows and photo.replace(os.sep, '/') == str(k_no_ext) or
+                        p_no_ext == str(k) or is_windows and p_no_ext.replace(os.sep, '/') == str(k)           or
+                        p_no_ext == str(k_no_ext) or is_windows and p_no_ext.replace(os.sep, '/') == str(k_no_ext)            ):
                             photo_exist = True
 
-                if photo_exist == True:
-                    # print 'Skipped [%s] already exists in set [%s]' % (photo, display_title)
+                if photo_exist:
+                    # print 'Skipped [{}] already exists in set [{}]'.format( photo, display_title )
                     pass
                 else:
-                    print 'Uploading [%s] to set [%s]' % (photo, display_title)
                     upload_args = {
                         'auth_token': token,
                         # (Optional) The title of the photo.
@@ -373,7 +375,7 @@ def start_sync(sync_path, cmd_args):
                     file_stat = os.stat(file_path)
 
                     if file_stat.st_size >= 1073741824:
-                        error( 'Skipped [%s] over size limit' % photo )
+                        error( 'Skipped [{}] over size limit'.format(photo) )
                         continue
 
                     try:
@@ -382,19 +384,19 @@ def start_sync(sync_path, cmd_args):
                         add_to_photo_set(photo_id, folder)
                         photos[photo] = photo_id
                     except flickrapi.FlickrError as e:
-                        error( '%s on %s in %s' % (e.message, photo, display_title) )
+                        error( '{} on {} in {}'.format(e.message, photo, display_title) )
                     except BaseException as e:
-                        error( '%s on %s in %s' % (e.message, photo, display_title) )
+                        error( '{} on {} in {}'.format(e.message, photo, display_title) )
 
 
     print 'All Synced'
 
 def warning(*objs):
-    sys.stderr.write("WARNING: %s\n" % objs )
+    sys.stderr.write("WARNING: {}\n".format(*objs) )
     sys.stderr.flush()
 
 def error(*objs):
-    sys.stderr.write("ERROR: %s\n" % objs )
+    sys.stderr.write("ERROR: {}\n".format(*objs) )
     sys.stderr.flush()
 
 def main():
