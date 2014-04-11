@@ -237,6 +237,7 @@ def start_sync(sync_path, cmd_args):
                     break
 
                 for photo in photos_in_set['photoset']['photo']:
+                    # print photo;
 
                     if is_download and photo.get('media') == 'video':
                         photo_args = args.copy()
@@ -262,7 +263,13 @@ def start_sync(sync_path, cmd_args):
                         #print     photos[photo['title']]
                     else:
                         title = photo['title']
-                        photos[title] = photo['url_o'] if is_download else photo['id']
+                        if not title:
+                            title = photo['id']
+                        if not title:
+                            if photo['url_o']:
+                                title, ext = os.path.splitext(os.path.basename(photo['url_o']))
+                        if title:
+                            photos[title] = photo['url_o'] if is_download else photo['id']
 
         return photos
 
@@ -379,6 +386,7 @@ def start_sync(sync_path, cmd_args):
                         continue
 
                     try:
+                        print 'Uploading {} [{}]'.format( photo, display_title )
                         upload = api.upload(file_path, None, **upload_args)
                         photo_id = upload.find('photoid').text
                         add_to_photo_set(photo_id, folder)
