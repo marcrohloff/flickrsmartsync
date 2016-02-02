@@ -68,7 +68,7 @@ def fix_file_ext(file, headers):
     if new_ext=='':
       content_type = headers['content-type'].lower()
       if content_type not in MIME_TYPES:
-          warning('Unknown mime type for ct:{}'.format(content-type) )
+          warning('Unknown mime type for ct:{}'.format(content_type) )
           return;
       new_ext = MIME_TYPES[content_type]
 

@@ -8,7 +8,7 @@ class.
 
 See `the FlickrAPI homepage`_ for more info.
 
-.. _`the FlickrAPI homepage`: http://stuvel.eu/projects/flickrapi
+.. _`the FlickrAPI homepage`: https://stuvel.eu/projects/flickrapi
 '''
 
 __version__ = '1.4.2'
@@ -17,10 +17,10 @@ __all__ = ('FlickrAPI', 'IllegalArgumentException', 'FlickrError',
 __author__ = u'Sybren St\u00fcvel'.encode('utf-8')
 
 # Copyright (c) 2007 by the respective coders, see
-# http://www.stuvel.eu/projects/flickrapi
+# https://www.stuvel.eu/projects/flickrapi
 #
 # This code is subject to the Python licence, as can be read on
-# http://www.python.org/download/releases/2.5.2/license/
+# https://www.python.org/download/releases/2.5.2/license/
 #
 # For those without an internet connection, here is a summary. When this
 # summary clashes with the Python licence, the latter will be applied.
@@ -398,7 +398,7 @@ class FlickrAPI(object):
         if self.cache and self.cache.get(post_data):
             return self.cache.get(post_data)
 
-        url = "http://" + self.flickr_host + self.flickr_rest_form
+        url = "https://" + self.flickr_host + self.flickr_rest_form
         flicksocket = urllib2.urlopen(url, post_data)
         reply = flicksocket.read()
         flicksocket.close()
@@ -452,7 +452,7 @@ class FlickrAPI(object):
                     "frob": frob,
                     "perms": perms})
 
-        return "http://%s%s?%s" % (self.flickr_host, \
+        return "https://%s%s?%s" % (self.flickr_host, \
                 self.flickr_auth_form, encoded)
 
     def web_login_url(self, perms):
@@ -466,7 +466,7 @@ class FlickrAPI(object):
                     "api_key": self.api_key,
                     "perms": perms})
 
-        return "http://%s%s?%s" % (self.flickr_host, \
+        return "https://%s%s?%s" % (self.flickr_host, \
                 self.flickr_auth_form, encoded)
 
     def __extract_upload_response_format(self, kwargs):
@@ -590,7 +590,7 @@ class FlickrAPI(object):
         
         if self.secret:
             kwargs["api_sig"] = self.sign(kwargs)
-        url = "http://%s%s" % (self.flickr_host, form_url)
+        url = "https://%s%s" % (self.flickr_host, form_url)
 
         # construct POST data
         body = Multipart()
@@ -847,7 +847,7 @@ class FlickrAPI(object):
         returned eventually.
 
         .. _flickr.photosets.getPhotos:
-            http://www.flickr.com/services/api/flickr.photosets.getPhotos.html
+            https://www.flickr.com/services/api/flickr.photosets.getPhotos.html
         
         Uses the ElementTree format, incompatible with other formats.
         '''
@@ -865,7 +865,7 @@ class FlickrAPI(object):
         eventually.
 
         .. _flickr.photos.search:
-            http://www.flickr.com/services/api/flickr.photos.search.html
+            https://www.flickr.com/services/api/flickr.photos.search.html
 
         Also see `walk_set`.
         '''
