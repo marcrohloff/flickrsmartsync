@@ -312,8 +312,8 @@ def start_sync(sync_path, cmd_args):
                         pass
                     else:
                         print 'Downloading photo [{}]'.format( path )
-                        # [filename, headers] = urllib.urlretrieve(photos[photo], os.path.join(sync_path, path) )
-                        # fix_file_ext(filename, headers)
+                        [filename, headers] = urllib.urlretrieve(photos[photo], os.path.join(sync_path, path) )
+                        fix_file_ext(filename, headers)
 
     else:
         # Loop through all local photo set map and
