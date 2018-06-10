@@ -1,8 +1,18 @@
 #!/bin/bash
-# cd ~/Pictures/Snapshots
+
+set -euo pipefail
+
+cd ~/Pictures/Snapshots
+
 echo --------------------------
-echo Spawning at `date`
-echo Starting at `date` ; \
-python ~/Applications/flickrsmartsync/flickrsmartsync --generate-tags ; \
-python ~/Applications/flickrsmartsync/flickrsmartsync --download . ; \
-echo Finished at `date` ; \
+echo Generating tags [Uploading] at `date`
+echo --------------------------
+python ~/.local/bin/flickrsmartsync/flickrsmartsync --generate-tags
+echo --------------------------
+echo Downloading at `date`
+echo --------------------------
+python ~/.local/bin/flickrsmartsync/flickrsmartsync --download 2018
+echo --------------------------
+echo Finished at `date`
+echo --------------------------
+

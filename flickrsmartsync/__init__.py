@@ -297,17 +297,23 @@ def start_sync(sync_path, cmd_args):
                     elif cmd_args.ignore_videos and file_ext(photo) in EXT_VIDEO:
                         continue
 
-                    path = os.path.join(folder, photo)
-                    if os.path.exists(path):
+                    path  = os.path.join(folder, photo)
+                    lpath = re.sub(r'[^/]+$', 
+                                   lambda match: match.group(0).lower(), 
+                                   path)
+                    upath = re.sub(r'[^/]+$', 
+                                   lambda match: match.group(0).upper(), 
+                                   path)
+                    if os.path.exists(path) or os.path.exists(lpath) or os.path.exists(upath):
                         # print 'Skipped [{}] already downloaded'.format( path )
                         pass
-                    elif glob.glob(path + '.*'):
+                    elif glob.glob(path + '.*') or glob.glob(lpath + '.*') or glob.glob(upath + '.*'):
                         # print 'Skipped [{}] already matched'.format( path )
                         pass
                     else:
                         print 'Downloading photo [{}]'.format( path )
-                        [filename, headers] = urllib.urlretrieve(photos[photo], os.path.join(sync_path, path) )
-                        fix_file_ext(filename, headers)
+                        # [filename, headers] = urllib.urlretrieve(photos[photo], os.path.join(sync_path, path) )
+                        # fix_file_ext(filename, headers)
 
     else:
         # Loop through all local photo set map and
